@@ -1,0 +1,225 @@
+app.component.html
+<!--The content below is only a placeholder and can be replaced.-->
+<app-menu></app-menu>
+<br>
+<br>
+<div class="cointainer">
+  
+<router-outlet></router-outlet>
+
+</div>
+ <br><br>
+ <app-footer></app-footer>
+
+menu.component.html
+<header>
+  <nav class="navbar navbar-expand-md navbar-red bg-green">
+  <div>
+    <a href="http://www.sysarcinformatix.com" class="navbar-brand">Sysarc Informatix</a>
+  </div>
+  <ul class="navbar-nav">
+    <li><a *ngIf="authService.isUserLoggedIn()"routerLink="/Welocome" class="nav-link">Home</a></li>
+    
+    <li><a *ngIf="authService.isUserLoggedIn()"routerLink="/feedback" class="nav-link">Feedback form</a></li>
+
+  </ul>
+  <ul class="navbar-nav navbar-collapse justify-content-end">
+    <li><a *ngIf="!authservice.isuserLoggedIn()"routerLink="/login"class="nav-link">Login</a></li> 
+    <li><a *ngIf="authservice.isuserLoggedIn()"routerLink="/logout"class="nav-link">Logout</a></li>
+  </ul>
+  </nav>
+</header>
+
+menu.component.ts
+
+import { Component, OnInit } from '@angular/core';
+import { HardcodedAuthenticationService } from '../hardcoded-authentication.service';
+
+@Component({
+  selector: 'app-menu',
+  templateUrl: './menu.component.html',
+  styleUrls: ['./menu.component.css']
+})
+export class MenuComponent implements OnInit {
+  isUserLoggedIn:boolean=false;
+
+  constructor(private authSevice:HardcodedAuthenticationService) { }
+
+  ngOnInit() {
+    this.isUserLoggedIn=this.authService.isUserLoggedIn();
+  }
+
+}
+footer.component.html
+
+<footer class="footer">
+  <div class="container">
+    <span class="text-muted">All rights reserved @2019 sysarc informatix</span>
+  </div>
+</footer>
+login component.html
+
+<h1>login</h1>
+<form #e="ngForm">
+  <input type="text" placeholder="enter username" [(ngModel)]="empid"
+  name="username" #e="ngModel" required/><br/>
+  <input type="password" placeholder="your password" [(ngModel)]="password"
+  name="password"  #e="ngModel" required/><br/>
+  <input type="submit" class="btnsubmit" value="login"(click)="handleLogin()"/>
+</form>
+login component.ts
+import { Component, OnInit } from '@angular/core';
+import {Router} from '@angular/router';
+import { HardcodedAuthenticationService } from '../hardcoded-authentication.service';
+
+@Component({
+  selector: 'app-login',
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css']
+})
+export class LoginComponent implements OnInit {
+username='';
+password='';
+errorMessage='Invalid credentials';
+invalidLogin=false;
+  constructor(private router:Router,private authService:HardcodedAuthenticationService) { }
+handleLogin()
+{
+  if(this.authService.authenticate(this.username,this.password))
+  {
+    this.router.navigate(['Welcome',this.username])
+    this.invalidLogin=false;
+  }
+  else{
+    this.invalidLogin=true;
+  }
+}
+  ngOnInit() {
+ 
+
+    }
+  }
+hardcoded authentication.service.ts
+import { Injectable } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class HardcodedAuthenticationService {
+
+  constructor() { }
+  authenticate(username,password)
+  {
+    console.log('before'+this.isUserLoggedIn())
+    if(username==='preethi'&&password==='preethy')
+    {
+      sessionStorage.setitem('authenticateUser',username);
+      console.log('after'+this.isUserLoggedIn())
+      return true;
+    }
+    else
+    return false;
+  }
+  isUserLoggedIn()
+  {
+    let user=sessionStorage.getItem('authenticateUser')
+    console.log(user)
+    return!(user===null)
+  }
+  logout()
+  {
+    sessionStorage.removeItem('authenticateUser')
+  }
+}
+app-routing.module.ts
+import { NgModule } from '@angular/core';
+import { Routes, RouterModule } from '@angular/router';
+import {LoginComponent} from './login/login.component';
+import {LogoutComponent} from './logout/logout.component';
+import { RouteGuardService } from './route-guard.service';
+import { WelcomeComponent} from './welcome/welcome.component';
+
+const routes: Routes = [
+  { path:'/',component:LoginComponent},
+  { path:'login',component:LoginComponent},
+  { path:'welcome/:name',component:WelcomeComponent},
+  { path:'logout',component:LogoutComponent,canActivate:[RouteGuardService]},
+  
+
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }
+
+route-guard.service.ts
+
+import { Injectable } from '@angular/core';
+import{CanActivate,ActivatedRouteSnapshot,RouterStateSnapshot,Router} from '@angular/router';
+import{ HardcodedAuthenticationService } from './hardcoded-authentication.service';
+
+
+
+
+@Injectable({
+  providedIn: 'root'
+})
+export class RouteGuardService implements CanActivate {
+
+  constructor(private authService:HardcodedAuthenticationService,private router:Router) { }
+  canActivate(route:ActivatedRouteSnapshot,state:RouterStateSnapshot){
+    if(this.authService.isUserLoggedIn())
+    return true;
+    this.router.navigate(['login'])
+    return false;
+  }
+}
+welcome component.ts
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'app-welcome',
+  templateUrl: './welcome.component.html',
+  styleUrls: ['./welcome.component.css']
+})
+export class WelcomeComponent implements OnInit {
+  welcomeMessageFromService:string;
+  name='preethi'
+
+  constructor() { }
+
+  ngOnInit() {
+  }
+
+}
+feedbackform.html
+
+<h1>feedback</h1>
+<form #e="ngForm">
+  <input type="text" placeholder="enter username" [(ngModel)]="empid"
+  name="username" #e="ngModel" required/><br/>
+  <input type="password" placeholder="your password" [(ngModel)]="password"
+  name="password"  #e="ngModel" required/><br/>
+  <input type="submit" class="btnsubmit" value="feedback"(click)="handleLogin()"/>
+</form>
+logout component.ts
+import { Component, OnInit } from '@angular/core';
+import { HardcodedAuthenticationService } from '../hardcoded-authentication.service';
+
+
+@Component({
+  selector: 'app-logout',
+  templateUrl: './logout.component.html',
+  styleUrls: ['./logout.component.css']
+})
+export class LogoutComponent implements OnInit {
+
+  constructor(private authService:HardcodedAuthenticationService) { }
+
+  ngOnInit() {
+    this.authService.logout();
+  }
+
+}
